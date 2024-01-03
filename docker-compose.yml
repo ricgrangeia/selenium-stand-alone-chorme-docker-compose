@@ -1,0 +1,32 @@
+version: '3.1'
+
+networks:
+  internal:
+    name: ${NETWORK_NAME}
+    external: ${NETWORK_IS_EXTERNAL}
+
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    container_name:  ${CONTAINER_NAME}
+    restart: unless-stopped  # Set the restart policy
+    hostname: ${HOSTNAME}
+    environment:
+      - SE_NODE_SESSION_TIMEOUT=${SE_NODE_SESSION_TIMEOUT}
+      - SE_OPTS=--enable-managed-downloads true
+      - SE_VNC_NO_PASSWORD=1
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_MAX_SESSIONS=${SE_NODE_MAX_SESSIONS}
+    networks:
+      - internal
+    ports:
+      - ${PORTS_VNC}:${PORTS_VNC}
+      - ${PORTS_SERVER}:${PORTS_SERVER}
+
+    privileged: true
+    shm_size: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/bin/check-grid.sh --host 0.0.0.0 --port ${PORTS_SERVER}"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
